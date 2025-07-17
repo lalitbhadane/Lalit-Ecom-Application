@@ -136,10 +136,10 @@ The script auto-tests the webpage using curl and verifies key product names.
 
 Manual browser check can be done at:
 
-http://localhost/web-app
+[http://localhost/web-app](http://localhost/web-app)
 
-🙌 Credits
-Application Base: KodeKloud Learning App - Ecommerce
+### 🙌 Credits
+#### Application Base: KodeKloud Learning App - Ecommerce
 
-Deployment Automation & Documentation: LALIT BHADANE
+#### Deployment Automation & Documentation: LALIT BHADANE
 
