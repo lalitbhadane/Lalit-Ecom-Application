@@ -1,15 +1,14 @@
 #!/bin/bash
-
-#set -e  # Stop if any command fails
-
-echo " Starting eCommerce App Deployment on Ubuntu WSL"
+#echo " Starting eCommerce App Deployment on Ubuntu WSL"
 
 # Update packages
 #echo " Updating system..."
+
 sudo apt update && sudo apt upgrade -y
 
 # Install Apache, PHP, MySQL
 echo " Installing Apache, PHP, and MySQL..."
+
 sudo apt install -y apache2 php libapache2-mod-php php-mysql mysql-server git curl
 
 # Start services
@@ -34,47 +33,48 @@ echo " Database and user created."
 
 # Load sample data
 echo " Loading sample data into $DB_NAME..."
-cat > db-load.sql <<EOF
+cat > db-load.sql <<-EOF
+
 USE $DB_NAME;
 CREATE TABLE IF NOT EXISTS products (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    Name VARCHAR(255),
-    Price VARCHAR(255),
-    ImageUrl VARCHAR(255)
-);
+        Name VARCHAR(255),
+            Price VARCHAR(255),
+                ImageUrl VARCHAR(255)
+                );
 
-INSERT INTO products (Name,Price,ImageUrl) VALUES
-("Laptop","100","c-1.png"),
-("Drone","200","c-2.png"),
-("VR","300","c-3.png"),
-("Tablet","50","c-5.png"),
-("Watch","90","c-6.png"),
-("Phone Covers","20","c-7.png"),
-("Phone","80","c-8.png"),
-("Laptop","150","c-4.png");
-EOF
+                INSERT INTO products (Name,Price,ImageUrl) VALUES
+                ("Laptop","100","c-1.png"),
+                ("Drone","200","c-2.png"),
+                ("VR","300","c-3.png"),
+                ("Tablet","50","c-5.png"),
+                ("Watch","90","c-6.png"),
+                ("Phone Covers","20","c-7.png"),
+                ("Phone","80","c-8.png"),
+                ("Laptop","150","c-4.png");
+		EOF
+              
+                sudo mysql < db-load.sql
 
-sudo mysql < db-load.sql
+                echo " Sample data loaded."
+		        sudo rm -rf /var/www/html
+                # Clone the app code
+                APP_DIR="/var/www/html/"
+                echo " Cloning app code into $APP_DIR..."
+                sudo git clone https://github.com/lalitbhadane/Lalit-Ecom-Application.git $APP_DIR
+                # Configure database connection
+                echo " Configuring app to connect to MySQL..."
 
-echo " Sample data loaded."
+                sudo sed -i 's#// \(.*mysqli_connect.*\)#\1#' $APP_DIR/web-app/index.php
+                sudo sed -i 's#172.20.1.101#localhost#g' $APP_DIR/web-app/index.php
 
-# Clone the app code
-APP_DIR="/var/www/html/web-app"
-echo " Cloning app code into $APP_DIR..."
-sudo git clone https://github.com/lalitbhadane/Lalit-Ecom-Application.git $APP_DIR
+                echo " App configured."
 
-# Configure database connection
-echo " Configuring app to connect to MySQL..."
+                # Restart Apache just in case
+                sudo service apache2 restart
 
-sudo sed -i 's#// \(.*mysqli_connect.*\)#\1#' $APP_DIR/index.php
-sudo sed -i 's#172.20.1.101#localhost#g' $APP_DIR/index.php
+                echo " Testing the web app locally..."
+                curl http://localhost/web-app | grep -q "Laptop" && echo " Deployment successful, 'Laptop' found on page!" || echo " Deployment may have issues."
 
-echo " App configured."
-
-# Restart Apache just in case
-sudo service apache2 restart
-
-echo " Testing the web app locally..."
-curl http://localhost | grep -q "Laptop" && echo " Deployment successful, 'Laptop' found on page!" || echo " Deployment may have issues."
-
-echo " All done! Your eCommerce app is deployed on http://localhost"
+                echo " All done! Your eCommerce app is deployed on http://localhost/web-app"
+                
